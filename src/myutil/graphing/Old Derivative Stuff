@@ -1,0 +1,144 @@
+Calculator c = new Calculator(whiteSpaceStrip(fx), x);
+        String diff = c.derive(1);
+        boolean above = false;
+        boolean below = false;
+        double value = Double.NaN;
+        double exitX = Double.NaN;
+        for(double dx = xRange[0]; dx <= xRange[1]; dx += (xRange[1] - xRange[0])/100) {
+            String expression = diff.replaceAll(x, ""+dx);
+            c.resetVariablesTo(0);
+            value = c.calc(expression);
+            if(!above && value > 0) {
+                above = true;
+            } else if(!below && value < 0) {
+                below = true;
+            } else if(value == 0) {
+                above = true;
+                below = true;
+            }
+            if(above && below) {
+                exitX = dx;
+                break;
+            }
+        }
+        if(Double.isNaN(exitX)) {
+            if(c.fCalc(xRange[0]) < c.fCalc(xRange[1])) {
+                return xRange[0];
+            } else {
+                return xRange[1];
+            }
+        } else {
+            c.resetVariablesTo(0);
+            double vb = c.calc(diff.replaceAll(x, ""+(exitX - (xRange[1] - xRange[0])/100)));
+            double va = c.calc(diff.replaceAll(x, ""+(exitX + (xRange[1] - xRange[0])/100)));
+            double min = Math.min(vb, Math.min(va, value));
+            if(min == va) {
+                return exitX + (xRange[1] - xRange[0])/100;
+            } else if(min == vb) {
+                return exitX - (xRange[1] - xRange[0])/100;
+            } else {
+                return exitX;
+            }
+        }
+
+private String derive(int order) {
+        if(function == null) {
+            return null;
+        }
+        String diff = function[0];
+        for(int i = 0; i < order; i++) {
+            diff = doDerive(diff, function[1]);
+        }
+        return diff;
+    }
+
+    private String doDerive(String function, String variable) {
+        FunctionTreeNode root = FunctionTreeNode.makeTree(function, variable);
+        ArrayList<FunctionTreeNode> leaves = new ArrayList<>();
+        leaves.add(root);
+        int oldSize = 0;
+        while(leaves.size() != oldSize) {
+            oldSize = leaves.size();
+            FunctionTreeNode next = null;
+            for(FunctionTreeNode node : leaves) {
+                if(!node.isLeaf()) {
+                    next = node;
+                    break;
+                }
+            }
+            if(next != null) {
+                leaves.remove(next);
+                leaves.add(next.getLeftChild());
+                if(next.hasRightChild()) {
+                    leaves.add(next.getRightChild());
+                }
+            }
+        }
+        while(leaves.size() > 1) {
+            FunctionTreeNode left = leaves.remove(0);
+            FunctionTreeNode parent = left.getParent();
+            if(parent.hasRightChild()) {
+                FunctionTreeNode right = parent.getRightChild();
+                if(parent.getValue().compareTo("+") == 0) {
+                    parent.tempValue = doAddDiff(left, right, variable);
+                } else if(parent.getValue().compareTo("-") == 0) {
+                    parent.tempValue = doSubDiff(left, right, variable);
+                } else if(parent.getValue().compareTo("*") == 0) {
+                    parent.tempValue = doMultDiff(left, right, variable);
+                } else if(parent.getValue().compareTo("/") == 0) {
+                    parent.tempValue = doDivDiff(left, right, variable);
+                } else if(parent.getValue().compareTo("^") == 0) {
+                    parent.tempValue = doPowDiff(left, right, variable);
+                } else {
+                    throw new GraphingException("Invalid binary operator: " +parent.getValue());
+                }
+            } else {
+                
+            }
+        }
+        return root.tempValue;
+    }
+
+    private void constantCheck(FunctionTreeNode node, String variable) {
+        if(node.isLeaf()) {
+            if(node.getValue().compareTo(variable) == 0) {
+                node.tempValue = "1";
+            } else {
+                node.tempValue = "0";
+            }
+        }
+    }
+    
+    private String doAddDiff(FunctionTreeNode left, FunctionTreeNode right, String variable) {
+        constantCheck(left, variable);
+        constantCheck(right, variable);
+        return left.tempValue +"+" +right.tempValue;
+    }
+
+    private String doSubDiff(FunctionTreeNode left, FunctionTreeNode right, String variable) {
+        constantCheck(left, variable);
+        constantCheck(right, variable);
+        return left.tempValue +"-" +right.tempValue;
+    }
+
+    private String doMultDiff(FunctionTreeNode left, FunctionTreeNode right, String variable) {
+        constantCheck(left, variable);
+        constantCheck(right, variable);
+        return "(" +left.tempValue +")*(" + right.getTotalValue() +")+(" +left.getTotalValue() +")*(" +right.tempValue +")";
+    }
+
+    private String doDivDiff(FunctionTreeNode left, FunctionTreeNode right, String variable) {
+        constantCheck(left, variable);
+        constantCheck(right, variable);
+        return "((" +left.tempValue +")*(" + right.getTotalValue() +")+(" +left.getTotalValue() +")*(" +right.tempValue +"))/(" +right.getTotalValue() +")^2";
+    }
+
+    private String doPowDiff(FunctionTreeNode left, FunctionTreeNode right, String variable) {
+        constantCheck(left, variable);
+        constantCheck(right, variable);
+        if(!right.isLeaf()) {
+            throw new GraphingException("Can't take derivative of f^g currrently");
+        }
+        double power = Calculator.myParseDouble(right.getValue());
+        
+    }
