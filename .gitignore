@@ -9,3 +9,4 @@
 # exclude all log files
 /log-*.txt
 /dist/log-*.txt
+/dist/

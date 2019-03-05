@@ -53,9 +53,11 @@ public class Colour {
     public static final Color Orchid = new Color(0xDA, 0x70, 0xD6);
     public static final Color PaleGreen = new Color(0x98, 0xFB, 0x98);
     public static final Color Purple = new Color(0x80, 0x00, 0x80);
+    public static final Color RebeccaPurple = new Color(0x66, 0x33, 0x99);
     public static final Color RoyalBlue = new Color(0x41, 0x69, 0xE1);
     public static final Color SaddleBrown = new Color(0x8B, 0x45, 0x13);
     public static final Color SandyBrown = new Color(0xF4, 0xA4, 0x60);
+    public static final Color SeaGreen = new Color(0x2E, 0x8B, 0x57);
     public static final Color SlateGray = new Color(0x70, 0x80, 0x90);
     public static final Color SteelBlue = new Color(0x46, 0x82, 0xB4);
     public static final Color Tomato = new Color(0xFF, 0x63, 0x47);
